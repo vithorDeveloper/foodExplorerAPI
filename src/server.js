@@ -5,13 +5,20 @@ const express = require('express');
 
 const routes = require('./routes');
 const AppError = require('./utils/AppError');
+const uploadConfig = require('./config/uploads')
+const cors = require('cors');
 
 const app = express();
 
+database()  
+
+app.use(cors());
 
 app.use(express.json());
+
+app.use("/files", express.static(uploadConfig.UPLOADS_FOLDER)); // REVISAR
+
 app.use(routes);
-database()
 
 app.use((error, req, res, next) => {
 

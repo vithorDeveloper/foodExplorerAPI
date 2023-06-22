@@ -1,16 +1,23 @@
 const AppError = require("../utils/AppError")
 const knex = require("../database/knex/index")
+const DiskStorage = require("../providers/DiskStorage")
 
+const diskStorage = new DiskStorage()
 class DishControllers {
 
   async create(req, res) {
     const { title, category, price, description, ingredients } = req.body
+
+    const {filename: image} = req.file
+
+    const filename = await diskStorage.saveFile(image)
 
       if(!title || !category || !price || !description || !ingredients) {
           throw new AppError("preencha todos os campos")
       }
 
       const [dishId] = await knex("dishes").insert({
+        image: filename,
         title,
         category,
         price,
@@ -32,6 +39,9 @@ class DishControllers {
   async update(req, res) {
     const { title, category, price, description} = req.body
     const { id } = req.params
+    const {filename: image} = req.file
+
+    const filename = await diskStorage.saveFile(image)
 
     const dishInfo = await knex("dishes")
     .where({id})
@@ -43,6 +53,7 @@ class DishControllers {
     dishInfo.description = description ?? dishInfo.description
 
     await knex("dishes").where("id", dishInfo.id).update({
+      image: filename,
       title,
       category,
       price,
