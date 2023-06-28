@@ -27,8 +27,10 @@ class DishControllers {
         price,
         description
       })
+
+      const ingredientsArray = ingredients.split(",");
   
-      const ingredientsInsert = ingredients.map( name => {
+      const ingredientsInsert = ingredientsArray.map( name => {
         return{
           dish_id: dishId,
           name
