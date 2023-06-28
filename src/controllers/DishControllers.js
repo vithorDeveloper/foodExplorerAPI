@@ -8,9 +8,13 @@ class DishControllers {
   async create(req, res) {
     const { title, category, price, description, ingredients } = req.body
 
+      console.log(title, category, price, description, ingredients)
+
     const {filename: image} = req.file
 
     const filename = await diskStorage.saveFile(image)
+
+    console.log(image)
 
       if(!title || !category || !price || !description || !ingredients) {
           throw new AppError("preencha todos os campos")
