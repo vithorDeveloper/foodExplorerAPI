@@ -41,4 +41,4 @@ app.use((error, req, res, next) => {
 
 const PORT = 3333;
 
-app.listen(PORT, () => console.log(`🎈🚀SERVIDOR TÁ ON PAI, MARCHAAA, TAMO AQUI NA PORTA ${PORT}, ENCOSTA🚀🎈`));
+app.listen(PORT, () => console.log(`🎈🚀SERVIDOR TÁ ON NA PORTA ${PORT}🚀🎈`));
