@@ -43,31 +43,41 @@ class DishControllers {
   }
 
   async update(req, res) {
-    const { title, category, price, description} = req.body
-    const { id } = req.params
-    const {filename: image} = req.file
+    try {
+      const { id } = req.params;
+      const { title, category, price, description, ingredients } = req.body;
+      const { filename: image } = req.file;
 
-    const filename = await diskStorage.saveFile(image)
+      if (!image) {
+        return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+      }
 
-    const dishInfo = await knex("dishes")
-    .where({id})
-    .first()
+      const filename = await diskStorage.saveFile(image.filename);
 
-    dishInfo.title = title ?? dishInfo.title
-    dishInfo.category = category ?? dishInfo.category
-    dishInfo.price = price ?? dishInfo.price
-    dishInfo.description = description ?? dishInfo.description
+      const dishInfo = await knex('dishes').where({ id }).first();
 
-    await knex("dishes").where("id", dishInfo.id).update({
-      image: filename,
-      title,
-      category,
-      price,
-      description
-    })
+      dishInfo.title = title || dishInfo.title;
+      dishInfo.category = category || dishInfo.category;
+      dishInfo.price = price || dishInfo.price;
+      dishInfo.description = description || dishInfo.description;
+      dishInfo.ingredients = JSON.parse(ingredients) || dishInfo.ingredients;
+      dishInfo.image = filename || dishInfo.image;
 
-    return res.status(200).json()
-  }
+      await knex('dishes').where('id', dishInfo.id).update({
+        image: filename,
+        title,
+        category,
+        price,
+        description,
+        ingredients: JSON.stringify(dishInfo.ingredients),
+      });
+
+        return res.status(200).json();
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Erro ao atualizar o prato' });
+      }
+    }
 
   async show(req, res) {
     const { title, ingredients } = req.query
@@ -100,7 +110,7 @@ class DishControllers {
         .orderBy("price");
     } 
     else {
-        dishes = [];
+        dishes = await knex("dishes").select("*")
   }
 
     const selectIngredient = await knex("ingredients").select("*");
@@ -114,27 +124,27 @@ class DishControllers {
   })
 
   return res.json(dishesWithIngredient);
-}
+  }
 
   async index(req, res) {
-    const { id } = req.params
-
-      const dishes = await knex("dishes")
-      .where({id})
-      .select("*")
-
-      const dishId = dishes.map(dish => dish.id)
-
-      const ingredients = await knex("ingredients")
-      .whereIn("dish_id", dishId)
-      .orderBy("name")
-
-      const dishesWithIngredients = dishes.map(dish => ({
-            ...dish,
-            ingredients: ingredients.filter(ingredient => ingredient.dish_id === dish.id)
-      }))
-
-      return res.status(200).json(dishesWithIngredients)
+    const { id } = req.params;
+  
+    const dish = await knex("dishes").where({ id }).first();
+  
+    if (!dish) {
+      return res.status(404).json({ error: "Este prato não existe" });
+    }
+  
+    const ingredients = await knex("ingredients")
+      .whereIn("dish_id", [id])
+      .orderBy("name");
+  
+    const dishesWithIngredients = {
+      ...dish,
+      ingredients
+    };
+  
+    return res.status(200).json(dishesWithIngredients);
   }
   
   async delete(req, res) {
@@ -145,5 +155,4 @@ class DishControllers {
     return res.status(200).json("prato deletado")
   }
 }
-
 module.exports = DishControllers
