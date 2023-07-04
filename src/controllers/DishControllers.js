@@ -45,31 +45,45 @@ class DishControllers {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const { title, category, price, description, ingredients } = req.body;
-      const { filename: image } = req.file;
+      const { title, category, price, description, ingredients, isString } = req.body;
 
-      if (!image) {
-        return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+      let filename
+
+      if (isString === false) {
+        const { filename: image } = req.file;
+
+        filename = await diskStorage.saveFile(image);
+      } else {
+        filename = null
       }
-
-      const filename = await diskStorage.saveFile(image.filename);
 
       const dishInfo = await knex('dishes').where({ id }).first();
 
-      dishInfo.title = title || dishInfo.title;
-      dishInfo.category = category || dishInfo.category;
-      dishInfo.price = price || dishInfo.price;
-      dishInfo.description = description || dishInfo.description;
-      dishInfo.ingredients = JSON.parse(ingredients) || dishInfo.ingredients;
-      dishInfo.image = filename || dishInfo.image;
+      const ingredientsList = ingredients.split(",");
 
-      await knex('dishes').where('id', dishInfo.id).update({
-        image: filename,
+      await knex("ingredients").where({ dish_id: id }).delete();
+
+      for (let i = 0; i < ingredientsList.length; i++) {
+          const ingredient = ingredientsList[i];
+
+          if (ingredient.id) {
+              await knex("ingredients")
+              .where({ id: ingredient.id })
+              .update({ name: ingredient });
+          } else {
+              await knex("ingredients").insert({
+                  dish_id: id,
+                  name: ingredient
+              });
+          }
+      }
+
+      await knex('dishes').where({ id }).update({
+        image: filename ?? dishInfo.image,
         title,
         category,
         price,
-        description,
-        ingredients: JSON.stringify(dishInfo.ingredients),
+        description
       });
 
         return res.status(200).json();
