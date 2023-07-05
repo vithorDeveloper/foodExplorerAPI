@@ -42,7 +42,7 @@ class UserControllers{
       isAdm: checkUser.isAdm
     })
 
-    return res.json()
+    return res.json(isAdm)
   }
 }
 
