@@ -49,15 +49,15 @@ class DishControllers {
 
       let filename
 
-      if (isString === false) {
+      const dishInfo = await knex('dishes').where({ id }).first();
+
+      if (isString === 'false') {
         const { filename: image } = req.file;
 
         filename = await diskStorage.saveFile(image);
       } else {
-        filename = null
+        filename = dishInfo.image
       }
-
-      const dishInfo = await knex('dishes').where({ id }).first();
 
       const ingredientsList = ingredients.split(",");
 
@@ -79,7 +79,7 @@ class DishControllers {
       }
 
       await knex('dishes').where({ id }).update({
-        image: filename ?? dishInfo.image,
+        image: filename,
         title,
         category,
         price,
