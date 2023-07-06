@@ -1,4 +1,6 @@
 require('express-async-errors')
+require('dotenv/config')
+
 const database = require('./database/sqlite')
 
 const express = require('express');
@@ -39,6 +41,6 @@ app.use((error, req, res, next) => {
   })
 })
 
-const PORT = 3333;
+const PORT = process.env.PORT || 3333;
 
 app.listen(PORT, () => console.log(`🎈🚀SERVIDOR TÁ ON NA PORTA ${PORT}🚀🎈`));
